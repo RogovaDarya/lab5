@@ -1,0 +1,144 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: web_services_lab4
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create environment file
+        run: |
+          cp .env.example .env
+          echo "DB_HOST=localhost" >> .env
+          echo "DB_USER=root" >> .env
+          echo "DB_PASSWORD=root" >> .env
+          echo "DB_NAME=test_lab4db" >> .env
+          echo "JWT_SECRET=test-secret-$GITHUB_SHA" >> .env
+          echo "JWT_REFRESH_SECRET=test-refresh-secret-$GITHUB_SHA" >> .env
+
+      - name: Wait for MySQL
+        run: |
+          while ! mysqladmin ping -h"127.0.0.1" -P 3306 -uroot -proot --silent; do
+            sleep 1
+          done
+
+      - name: Run linting
+        run: npm run lint
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Run integration tests
+        run: npm test -- tests/integration/
+
+      - name: Generate coverage report
+        run: npm run test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+
+  deploy-staging:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Deploy to Staging
+        run: |
+          echo "Deploying to staging environment"
+
+      - name: Run staging health check
+        run: |
+          echo "Running health check on staging"
+          # curl -f https://your-staging-app.herokuapp.com/health
+
+  deploy-production:
+    needs: [test, deploy-staging]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Deploy to Production
+        run: |
+          echo "Deploying to production environment"
+
+      - name: Run production health check
+        run: |
+          echo "Running health check on production"
+          # curl -f https://your-production-app.herokuapp.com/health
+
+      - name: Monitor application
+        run: |
+          echo "Starting application monitoring"
+
+  rollback:
+    runs-on: ubuntu-latest
+    if: failure()
+
+    steps:
+      - name: Rollback deployment
+        run: |
+          echo "Rolling back due to pipeline failure"
