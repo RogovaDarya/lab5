@@ -7,7 +7,17 @@ describe("Health Check", () => {
     expect(response.status).toBe(200);
   });
 
-  test("Database connection should work", async () => {
-    expect(true).toBe(true);
+  test("Health endpoint should return 200 with status information", async () => {
+    const response = await request(app).get("/health");
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty("status");
+    expect(response.body).toHaveProperty("timestamp");
+    expect(response.body.environment).toBe("test");
+  });
+
+  test("Metrics endpoint should work", async () => {
+    const response = await request(app).get("/metrics");
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty("timestamp");
   });
 });

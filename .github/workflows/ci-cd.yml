@@ -95,11 +95,7 @@ jobs:
       - name: Deploy to Staging
         run: |
           echo "Deploying to staging environment"
-
-      - name: Run staging health check
-        run: |
-          echo "Running health check on staging"
-          # curl -f https://your-staging-app.herokuapp.com/health
+          # Здесь будет команда деплоя на staging
 
   deploy-production:
     needs: [test, deploy-staging]
@@ -124,15 +120,6 @@ jobs:
       - name: Deploy to Production
         run: |
           echo "Deploying to production environment"
-
-      - name: Run production health check
-        run: |
-          echo "Running health check on production"
-          # curl -f https://your-production-app.herokuapp.com/health
-
-      - name: Monitor application
-        run: |
-          echo "Starting application monitoring"
 
   rollback:
     runs-on: ubuntu-latest

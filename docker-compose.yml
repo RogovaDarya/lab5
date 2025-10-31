@@ -10,14 +10,9 @@ services:
       DB_HOST: mysql
       DB_USER: root
       DB_PASSWORD: root
-      DB_NAME: test_lab4db
+      DB_NAME: web_services_lab4
     depends_on:
       - mysql
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   mysql:
     image: mysql:8.0
