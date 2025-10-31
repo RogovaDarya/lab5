@@ -3,8 +3,8 @@ const config = require("../config/auth.config.js");
 const db = require("../models");
 const User = db.user;
 
-verifyToken = (req, res, next) => {
-  let token = req.headers["x-access-token"];
+const verifyToken = (req, res, next) => {
+  const token = req.headers["x-access-token"];
 
   if (!token) {
     return res.status(403).send({
@@ -23,7 +23,7 @@ verifyToken = (req, res, next) => {
   });
 };
 
-isAdmin = (req, res, next) => {
+const isAdmin = (req, res, next) => {
   User.findByPk(req.userId).then((user) => {
     user.getRoles().then((roles) => {
       for (let i = 0; i < roles.length; i++) {
@@ -41,7 +41,7 @@ isAdmin = (req, res, next) => {
   });
 };
 
-verifyRefreshToken = (req, res, next) => {
+const verifyRefreshToken = (req, res, next) => {
   const { refreshToken } = req.body;
 
   if (!refreshToken) {
@@ -62,8 +62,9 @@ verifyRefreshToken = (req, res, next) => {
 };
 
 const authJwt = {
-  verifyToken: verifyToken,
-  isAdmin: isAdmin,
-  verifyRefreshToken: verifyRefreshToken,
+  verifyToken,
+  isAdmin,
+  verifyRefreshToken,
 };
+
 module.exports = authJwt;

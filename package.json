@@ -9,7 +9,11 @@
     "test": "jest --forceExit --detectOpenHandles",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "lint": "eslint .",
+    "test:unit": "jest tests/unit/ --forceExit --detectOpenHandles",
+    "test:integration": "jest tests/integration/ --forceExit --detectOpenHandles",
+    "test:health": "jest tests/health.test.js --forceExit --detectOpenHandles",
+    "lint": "eslint . --ext .js",
+    "lint:fix": "eslint . --ext .js --fix",
     "build": "echo 'Build completed'"
   },
   "dependencies": {

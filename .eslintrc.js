@@ -10,7 +10,30 @@ module.exports = {
     sourceType: "module",
   },
   rules: {
-    "no-unused-vars": "warn",
+    "no-unused-vars": [
+      "warn",
+      {
+        argsIgnorePattern: "^_",
+        varsIgnorePattern: "^_",
+        caughtErrorsIgnorePattern: "^_",
+      },
+    ],
     "no-console": "off",
+    "prefer-const": "warn",
+    "no-var": "error",
   },
+  overrides: [
+    {
+      files: ["tests/**/*.js"],
+      rules: {
+        "no-unused-vars": "off",
+      },
+    },
+    {
+      files: ["app/middleware/*.js"],
+      rules: {
+        "no-unused-vars": "warn",
+      },
+    },
+  ],
 };
